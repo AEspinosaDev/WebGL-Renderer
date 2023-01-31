@@ -6,7 +6,6 @@ import { glMatrix, mat4 } from "./Utils/gl-matrix/index.js";
 var identityMatrix = new Float32Array(16);
 mat4.identity(identityMatrix);
 var angle = 0;
-var xRotationMatrix = new Float32Array(16);
 var yRotationMatrix = new Float32Array(16);
 
 var vertexShaderText =
@@ -56,6 +55,9 @@ export class Renderer {
         //Update
         this.boundTick = this.Tick.bind(this);
 
+        //Customize
+        this.backgroundColor = [156/255,189/255,1.0,1.0];
+
     }
     InitContext() {
         // Init WebGL context
@@ -75,10 +77,10 @@ export class Renderer {
 
         console.log('Graphics initiated successfully');
 
-        this.gl.clearColor(0.1, 0.1, 0.1, 1.0);
+        this.gl.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], this.backgroundColor[3]);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         this.gl.enable(this.gl.DEPTH_TEST);
-        this.gl.enable(this.gl.CULL_FACE);
+        // this.gl.enable(this.gl.CULL_FACE);
         this.gl.frontFace(this.gl.CCW);
         this.gl.cullFace(this.gl.BACK);
     }
@@ -88,9 +90,11 @@ export class Renderer {
         var diffuseShader = new Shader(this.gl, vertexShaderText, fragmentShaderText);
         this.shaders.push(diffuseShader);
         //var diffuseShader = new Shader(gl,"../Resources/Shaders/DiffuseShader.vs.glsl","../Resources/Shaders/DiffuseShader.fs.glsl");
-        var box = new Model(this.gl, "../Resources/Models/test-box.json", diffuseShader);
-        box.LoadTexture('crate-image', Texture.Albedo);
-
+        //var box = new Model(this.gl, "../Resources/Models/test-box.json", diffuseShader);
+        var box = new Model(this.gl,"../Resources/Models/warrior-test.json", diffuseShader);
+        //box.LoadTexture('crate-image', Texture.Albedo);
+        box.LoadTexture('armor', Texture.Albedo);
+        box.Scale([0.02,0.02,0.02]);
         this.models.push(box);
 
     }
@@ -118,7 +122,7 @@ export class Renderer {
         });
     }
     Render() {
-        this.gl.clearColor(0.75, 0.85, 0.8, 1.0);
+        this.gl.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], this.backgroundColor[3]);
         this.gl.clear(this.gl.DEPTH_BUFFER_BIT | this.gl.COLOR_BUFFER_BIT);
 
         this.models.forEach(m => {
@@ -126,23 +130,32 @@ export class Renderer {
         });
     }
     ResizeCanvas() {
-        // var cssToRealPixels = window.devicePixelRatio || 1,
-        //     displayWidth = Math.floor(this.canvas.clientWidth * cssToRealPixels),
-        //     displayHeight = Math.floor(this.canvas.clientHeight * cssToRealPixels);
-        // if (this.canvas.width != displayWidth || this.canvas.height != displayHeight) {
-        //     this.canvas.width = displayWidth;
-        //     this.canvas.height = displayHeight;
-        // }
+        var cssToRealPixels = window.devicePixelRatio || 1,
+            displayWidth = Math.floor(this.canvas.clientWidth * cssToRealPixels),
+            displayHeight = Math.floor(this.canvas.clientHeight * cssToRealPixels);
+        if (this.canvas.width != displayWidth || this.canvas.height != displayHeight) {
+            this.canvas.width = displayWidth;
+            this.canvas.height = displayHeight;
+        }
+        this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+        mat4.perspective(this.projMatrix, glMatrix.toRadian(45), this.canvas.clientWidth / this.canvas.clientHeight, 0.1, 1000.0);
+        
+        this.shaders.forEach(s => {
+            s.Use();
+            s.SetMat4('mView', this.viewMatrix);
+            s.SetMat4('mProj', this.projMatrix);
+        });
     }
     Tick() {
-        // this.ResizeCanvas();
+        this.ResizeCanvas();
         //resizeCanvas();
        
         angle = performance.now() / 1000 / 6 * 2 * Math.PI;
-        mat4.rotate(yRotationMatrix, identityMatrix, angle, [0, 1, 0]);
-        mat4.rotate(xRotationMatrix, identityMatrix, angle / 4, [1, 0, 0]);
-        mat4.mul(this.models[0].model, yRotationMatrix, xRotationMatrix);
-
+        mat4.rotate(this.models[0].model, this.models[0].model, 0.015, [0, 1, 0]);
+        //mat4.mul(this.models[0].model,identityMatrix, yRotationMatrix);
+        
+        // box.Scale([0.02,0.02,0.02]);
+        // mat4.scale(this.models[0].model,identityMatrix,[0.02,0.02,0.02]);
         // diffuseShader.SetMat4('mModel', box.model);
         this.Update();
         this.Render();

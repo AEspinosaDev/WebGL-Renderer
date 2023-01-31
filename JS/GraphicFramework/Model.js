@@ -195,10 +195,31 @@ export class Model {
     }
     AddShader(shader) {
         if (!this.shaders.find(shader)) {
+
             shader.SetAttrib('vertPosition');
             shader.SetAttrib('vertTexCoord');
+            shader.SetAttrib('vertNormal');
+            shader.SetAttrib('vertTangent');
+
             this.shaders.push(shader)
         }
+    }
+
+    /**
+     * Translates the model to the desire location. {Global}
+     * @param {vec3} pos Translating vector
+     */
+    Translate(pos) {
+        var identityMatrix = new Float32Array(16);
+        mat4.identity(identityMatrix);
+        mat4.translate(this.model,identityMatrix, pos)
+    }
+
+    Scale(factor) {
+        var identityMatrix = new Float32Array(16);
+        mat4.identity(identityMatrix);
+        mat4.scale(this.model, identityMatrix, factor)
+
     }
 
 }
