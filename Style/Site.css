@@ -1,0 +1,16 @@
+#glcanvas {
+    padding-left: 0;
+    padding-right: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    margin-bottom: auto;
+    display: block;
+    width: 90vw;
+    height: 90vh;
+    /* border-style:solid; */
+    border-radius: 10px;
+}
+
