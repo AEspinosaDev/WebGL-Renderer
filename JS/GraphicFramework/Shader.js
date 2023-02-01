@@ -22,9 +22,6 @@ export class Shader {
 
         this.vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
         this.fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-
-
-       
             
             this.CompileShaders(vertSourceRoute, fragSourceRoute);
     }
