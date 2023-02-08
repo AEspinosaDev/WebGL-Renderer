@@ -11,14 +11,15 @@ mat4.identity(identityMatrix);
 
 var vertexShaderText =
     [
-        'precision mediump float;',
-        '',
-        'attribute vec3 vertPosition;',
-        'attribute vec2 vertTexCoord;',
-        'varying vec2 fragTexCoord;',
+        '#version 300 es',
+        'in vec3 vertPosition;',
+        'in vec2 vertTexCoord;',
+        'in vec2 vertNormal;',
+        'in vec2 vertTangent;',
         'uniform mat4 mModel;',
         'uniform mat4 mView;',
         'uniform mat4 mProj;',
+        'out vec2 fragTexCoord;',
         '',
         'void main()',
         '{',
@@ -29,14 +30,15 @@ var vertexShaderText =
 
 var fragmentShaderText =
     [
+        '#version 300 es',
         'precision mediump float;',
-        '',
-        'varying vec2 fragTexCoord;',
+        'in vec2 fragTexCoord;',
         'uniform sampler2D sampler;',
+        'out vec4 color;',
         '',
         'void main()',
         '{',
-        '  gl_FragColor = texture2D(sampler, fragTexCoord);',
+        '  color = texture(sampler, fragTexCoord);',
         '}'
     ].join('\n');
 
@@ -63,7 +65,7 @@ export class Renderer {
         console.log('Starting renderer...');
 
         this.canvas = document.getElementById('glcanvas');
-        this.gl = this.canvas.getContext('webgl');
+        this.gl = this.canvas.getContext('webgl2');
 
         if (!this.gl) {
             console.log('WebGL not supported, falling back on experimental-webgl');
@@ -91,15 +93,18 @@ export class Renderer {
         var diffuseMat = new BasicMaterial(0,diffuseShader, 'crate', null, null);
         //var diffuseShader = new Shader(gl,"../Resources/Shaders/DiffuseShader.vs.glsl","../Resources/Shaders/DiffuseShader.fs.glsl");
         
-        //var box = new Model(this.gl, "../Resources/Models/test-box.json", [diffuseMat]);
-        var box = new Model(this.gl, "../Resources/Models/warrior-test.json", [diffuseMat]);
+        var box = new Model(this.gl, "../Resources/Models/test-box.json", [diffuseMat]);
+        var box2 = new Model(this.gl, "../Resources/Models/test-box.json", [diffuseMat]);
+        var warrior = new Model(this.gl, "../Resources/Models/sphere.json", [diffuseMat]);
         
-        box.Scale([0.02, 0.02, 0.02]);
-        //box.Translate([2,0,0]);
+        warrior.Scale([0.02, 0.02, 0.02]);
+        box.Translate([2,0,0]);
+        warrior.Translate([2,2,0]);
         this.models.push(box);
-        //this.models.push(box1);
+        this.models.push(box2);
+        this.models.push(warrior);
 
-
+        
     }
 
     InitCam() {

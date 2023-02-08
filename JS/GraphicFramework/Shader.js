@@ -103,7 +103,7 @@ export class Shader {
         if (!this.attributesLocationCache.has(name)) {
             var attrib_id =this.gl.getAttribLocation(this.program, name);
             this.attributesLocationCache.set(name,attrib_id);
-            return attrib_id
+            return attrib_id;
         }
     }
 

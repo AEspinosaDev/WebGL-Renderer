@@ -24,14 +24,12 @@ export class Model {
 
         for (let i = 0; i < this.numOfMeshes; i++) {
             mesh = new Mesh(gl, i, promiseOfData.meshes[i], matsList[0]);
+            mesh.Transform(this.position, this.scaleFactor);
             this.meshes.set(mesh.id, mesh);
         }
-        for (let value of this.meshes.values()) {
-            value.Scale(this.scaleFactor)
-            //value.Translate(this.position);
-        }
+       
         this.loaded = true;
-        
+
 
 
     }
@@ -41,7 +39,7 @@ export class Model {
                 value.Update();
             }
         }
-     }
+    }
 
     Render() {
         if (this.loaded) {
@@ -58,7 +56,7 @@ export class Model {
         this.position = pos;
         if (this.loaded) {
             for (let value of this.meshes.values()) {
-                value.Translate(pos);
+                value.Transform(this.position, this.scaleFactor);
             }
 
         }
@@ -68,10 +66,11 @@ export class Model {
         this.scaleFactor = factor;
         if (this.loaded) {
             for (let value of this.meshes.values()) {
-                value.Scale(factor);
+                value.Transform(this.position, this.scaleFactor);
             }
         }
     }
+
 
 
 }
