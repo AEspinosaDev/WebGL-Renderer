@@ -23,6 +23,8 @@ var vertexShaderText =
         '',
         'void main()',
         '{',
+        '  vertNormal;',
+        '  vertTangent;',
         '  fragTexCoord = vertTexCoord;',
         '  gl_Position = mProj * mView * mModel * vec4(vertPosition, 1.0);',
         '}'
@@ -49,7 +51,6 @@ export class Renderer {
         this.canvas;
 
         this.loaded = false;
-        this.TOTAL_OBJS_TO_LOAD = 2;
         this.objectsLoaded = 0;
 
         this.shaders = new Array();
@@ -98,24 +99,25 @@ export class Renderer {
         var diffuseMat = new BasicMaterial(0, diffuseShader, 'crate', null, null);
         //var diffuseShader = new Shader(gl,"../Resources/Shaders/DiffuseShader.vs.glsl","../Resources/Shaders/DiffuseShader.fs.glsl");
 
-        var box = new Model();
+        var box = new Model(this);
+        var box2 = new Model(this);
+
         box.Load(this.gl, "../Resources/Models/warrior-test.json", [diffuseMat], loadedCallback);
-        var box2 = new Model();
         box2.Load(this.gl, "../Resources/Models/test-box.json", [diffuseMat], loadedCallback);
         // var warrior = new Model();
         // warrior.Load(this.gl, "../Resources/Models/sphere.json", [diffuseMat], loadedCallback);
         box.Scale([0.02, 0.02, 0.02]);
         box2.Translate([2,0,0]);
         // warrior.Translate([2,2,0]);
-        this.models.push(box);
-        this.models.push(box2);
+        // this.models.push(box);
+        // this.models.push(box2);
         // this.models.push(warrior);
 
 
     }
     UpdateLoadedObjectsCount() {
         this.objectsLoaded++;
-        if (this.objectsLoaded == this.TOTAL_OBJS_TO_LOAD) {
+        if (this.objectsLoaded == this.models.length) {
             this.loaded = true; // allow rendering
         }
     }

@@ -2,7 +2,7 @@ import { Mesh } from "./Mesh.js";
 import { Utils } from "./Utils/Utils.js";
 
 export class Model {
-    constructor() {
+    constructor(renderer) {
 
         this.meshes = new Map();
         this.numOfMeshes = 0;
@@ -13,6 +13,8 @@ export class Model {
 
         this.position = [0, 0, 0];
         this.scaleFactor = [1, 1, 1];
+
+        renderer.models.push(this);
 
     }
    

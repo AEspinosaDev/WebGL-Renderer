@@ -49,7 +49,6 @@ export class Mesh {
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, coordBufferObject);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(texCoordList), this.gl.STATIC_DRAW);
         shader.GetAttrib('vertTexCoord');
-
        
 
         var normalBufferObject = this.gl.createBuffer();
