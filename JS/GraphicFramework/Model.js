@@ -1,11 +1,13 @@
 import { Mesh } from "./Mesh.js";
+import { Utils } from "./Utils/Utils.js";
 
 export class Model {
-    constructor(gl, route, matsList) {
+    constructor() {
 
         this.meshes = new Map();
         this.numOfMeshes = 0;
-        this.LoadModelData(gl, route, matsList)
+        //this.LoadModelData(gl, route, matsList)
+        
         this.loaded = false;
 
 
@@ -13,26 +15,26 @@ export class Model {
         this.scaleFactor = [1, 1, 1];
 
     }
-    async LoadModelData(gl, route, matsList) {
+   
+    Load(gl, route, matsList, callback){
+        var root = this;
 
-        const promiseOfData = await fetch(route)
-            .then((response) => response.json());
+        Utils.loadJson(route, function(data){
+            root.numOfMeshes = data.meshes.length;
 
-        this.numOfMeshes = promiseOfData.meshes.length;
-
-        var mesh;
-
-        for (let i = 0; i < this.numOfMeshes; i++) {
-            mesh = new Mesh(gl, i, promiseOfData.meshes[i], matsList[0]);
-            mesh.Transform(this.position, this.scaleFactor);
-            this.meshes.set(mesh.id, mesh);
-        }
-       
-        this.loaded = true;
-
-
+            var mesh;
+    
+            for (let i = 0; i < root.numOfMeshes; i++) {
+                mesh = new Mesh(gl, i, data.meshes[i], matsList[0]);
+                mesh.Transform(root.position, root.scaleFactor);
+                root.meshes.set(mesh.id, mesh);
+            }
+            root.loaded = true;
+            root.loaded && callback();
+        });
 
     }
+
     Update() {
         if (this.loaded) {
             for (let value of this.meshes.values()) {

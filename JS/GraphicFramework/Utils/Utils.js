@@ -28,18 +28,19 @@ Utils.LoadImage = function (url, callback) {
     image.src = url;
 };
 
-Utils.LoadJSONResource = function (url, callback) {
-    this.LoadTextResource(url, function (err, result) {
-        if (err) {
-            callback(err);
-        } else {
-            try {
-                callback(null, JSON.parse(result));
-            } catch (e) {
-                callback(e);
-            }
-        }
-    });
+
+
+Utils.loadJson = function (url, callback) {
+    var root = this,
+        xhr = new XMLHttpRequest();
+
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function () {
+        callback && callback(this.response);
+    };
+    xhr.send(null);
+
 };
 
 

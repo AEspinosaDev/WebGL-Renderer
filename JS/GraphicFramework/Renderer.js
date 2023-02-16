@@ -1,5 +1,5 @@
 import { Mesh } from "./Mesh.js";
-import { BasicMaterial} from "./BasicMaterial.js";
+import { BasicMaterial } from "./BasicMaterial.js";
 import { Shader } from "./Shader.js";
 import { Camera } from "./Camera.js";
 import { mat4 } from "./Utils/gl-matrix/index.js";
@@ -48,6 +48,10 @@ export class Renderer {
         this.gl; //WebGl context
         this.canvas;
 
+        this.loaded = false;
+        this.TOTAL_OBJS_TO_LOAD = 2;
+        this.objectsLoaded = 0;
+
         this.shaders = new Array();
         this.models = new Array();
 
@@ -86,25 +90,34 @@ export class Renderer {
         this.gl.cullFace(this.gl.BACK);
     }
     SetupScene() {
+        var loadedCallback = this.UpdateLoadedObjectsCount.bind(this);
         //Implement here scene loadout...
 
         var diffuseShader = new Shader(this.gl, vertexShaderText, fragmentShaderText);
         this.shaders.push(diffuseShader);
-        var diffuseMat = new BasicMaterial(0,diffuseShader, 'crate', null, null);
+        var diffuseMat = new BasicMaterial(0, diffuseShader, 'crate', null, null);
         //var diffuseShader = new Shader(gl,"../Resources/Shaders/DiffuseShader.vs.glsl","../Resources/Shaders/DiffuseShader.fs.glsl");
-        
-        var box = new Model(this.gl, "../Resources/Models/test-box.json", [diffuseMat]);
-        var box2 = new Model(this.gl, "../Resources/Models/test-box.json", [diffuseMat]);
-        var warrior = new Model(this.gl, "../Resources/Models/sphere.json", [diffuseMat]);
-        
-        warrior.Scale([0.02, 0.02, 0.02]);
-        box.Translate([2,0,0]);
-        warrior.Translate([2,2,0]);
+
+        var box = new Model();
+        box.Load(this.gl, "../Resources/Models/warrior-test.json", [diffuseMat], loadedCallback);
+        var box2 = new Model();
+        box2.Load(this.gl, "../Resources/Models/test-box.json", [diffuseMat], loadedCallback);
+        // var warrior = new Model();
+        // warrior.Load(this.gl, "../Resources/Models/sphere.json", [diffuseMat], loadedCallback);
+        box.Scale([0.02, 0.02, 0.02]);
+        box2.Translate([2,0,0]);
+        // warrior.Translate([2,2,0]);
         this.models.push(box);
         this.models.push(box2);
-        this.models.push(warrior);
+        // this.models.push(warrior);
 
-        
+
+    }
+    UpdateLoadedObjectsCount() {
+        this.objectsLoaded++;
+        if (this.objectsLoaded == this.TOTAL_OBJS_TO_LOAD) {
+            this.loaded = true; // allow rendering
+        }
     }
 
     InitCam() {
@@ -149,13 +162,15 @@ export class Renderer {
         });
     }
     Tick() {
-        this.ResizeCanvas();
 
-        // mat4.rotate(this.models[0].model, this.models[0].model, 0.015, [0, 1, 0]);
+        if (this.loaded) {
 
+            this.ResizeCanvas();
+            // mat4.rotate(this.models[0].model, this.models[0].model, 0.015, [0, 1, 0]);
+            this.Update();
+            this.Render();
 
-        this.Update();
-        this.Render();
+        }
 
         requestAnimationFrame(this.boundTick);
 
@@ -164,7 +179,6 @@ export class Renderer {
     Run() {
         this.InitContext();
         this.SetupScene();
-        this.InitCam();
 
         this.Tick();
     }

@@ -31,13 +31,13 @@ export class Mesh {
     }
 
 
-    InitBuffers(modelData, shader) {
-        console.log(modelData);
-        this.indexList = [].concat.apply([], modelData.faces);
-        var vertexPosList = modelData.vertices;
-        var texCoordList = modelData.texturecoords[0];
-        var normalsList = modelData.normals;
-        var tangentsList = modelData.tangents;
+    InitBuffers(meshData, shader) {
+        console.log(meshData);
+        this.indexList = [].concat.apply([], meshData.faces);
+        var vertexPosList = meshData.vertices;
+        var texCoordList = meshData.texturecoords[0];
+        var normalsList = meshData.normals;
+        var tangentsList = meshData.tangents;
 
         //Vertex data
         var posBufferObject = this.gl.createBuffer();
@@ -75,7 +75,6 @@ export class Mesh {
         this.buffersCache.push([tangentBufferObject, shader.GetAttrib('vertTangent'),3]);
 
 
-        shader.SetMat4('mModel', this.model);
 
 
     }
@@ -92,6 +91,7 @@ export class Mesh {
 
         //Binding buffers
         this.gl.bindBuffer(this.gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
+        
         this.buffersCache.forEach(vaoData => {
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vaoData[0]);
             this.gl.enableVertexAttribArray(vaoData[1]);
