@@ -1,4 +1,4 @@
-import { Utils } from "./Utils/Utils.js"
+import { Utils } from "./Utils/Utils.js";
 
 /**
  * 
@@ -7,23 +7,41 @@ import { Utils } from "./Utils/Utils.js"
  * @param {string} fragSourceRoute Frag file route
  */
 export class Shader {
-    constructor(gl, vertSourceRoute, fragSourceRoute) {
+    constructor(renderer, shaderSourceRoute) {
         
-        this.gl = gl;
+        this.gl = renderer.gl;
+        renderer.shaders.push(this);
         this.vertexShader = null;
         this.fragmentShader = null;
-        this.program = this.InitShader(vertSourceRoute, fragSourceRoute);
+        
+        this.LoadShader(shaderSourceRoute,renderer.shaderLoadedCallback);
 
         this.attributesLocationCache = new Map();
         this.uniformLocationCache = new Map();
 
     }
-    LoadShader(vertSourceRoute, fragSourceRoute) {
+  
+    //ASYNC
+    LoadShader(shaderSourceRoute,callback) {
+        var root = this;
 
-        this.vertexShader = this.gl.createShader(this.gl.VERTEX_SHADER);
-        this.fragmentShader = this.gl.createShader(this.gl.FRAGMENT_SHADER);
-            
-            this.CompileShaders(vertSourceRoute, fragSourceRoute);
+        Utils.LoadTextResource(shaderSourceRoute, function(data){
+
+            var splittedShaderSource = data.split("--SPLIT--");
+            var vertShaderSource = splittedShaderSource[0];
+            var fragShaderSource = splittedShaderSource[1];
+
+            root.vertexShader = root.gl.createShader(root.gl.VERTEX_SHADER);
+            root.fragmentShader = root.gl.createShader(root.gl.FRAGMENT_SHADER);
+
+            root.CompileShaders(vertShaderSource,fragShaderSource); //Shader text source
+
+            root.program = root.InitShader();
+
+            callback();
+
+        });
+
     }
     /**
      *
@@ -31,9 +49,7 @@ export class Shader {
      * @param {string} fragSourceRoute Frag file route
      * @returns Program ID
     */
-    InitShader(vertSourceRoute, fragSourceRoute) {
-
-        this.LoadShader(vertSourceRoute, fragSourceRoute);
+    InitShader() {
 
         var program = this.gl.createProgram();
         this.gl.attachShader(program, this.vertexShader);

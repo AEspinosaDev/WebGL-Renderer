@@ -2,7 +2,7 @@ import { Mesh } from "./Mesh.js";
 import { Utils } from "./Utils/Utils.js";
 
 export class Model {
-    constructor(renderer) {
+    constructor(renderer,route, matsList) {
 
         this.meshes = new Map();
         this.numOfMeshes = 0;
@@ -16,8 +16,11 @@ export class Model {
 
         renderer.models.push(this);
 
+        this.Load(renderer.gl,route,matsList,renderer.loadedCallback)
+
     }
    
+    //Async
     Load(gl, route, matsList, callback){
         var root = this;
 

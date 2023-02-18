@@ -9,57 +9,25 @@ var identityMatrix = new Float32Array(16);
 mat4.identity(identityMatrix);
 
 
-var vertexShaderText =
-    [
-        '#version 300 es',
-        'in vec3 vertPosition;',
-        'in vec2 vertTexCoord;',
-        'in vec2 vertNormal;',
-        'in vec2 vertTangent;',
-        'uniform mat4 mModel;',
-        'uniform mat4 mView;',
-        'uniform mat4 mProj;',
-        'out vec2 fragTexCoord;',
-        '',
-        'void main()',
-        '{',
-        '  vertNormal;',
-        '  vertTangent;',
-        '  fragTexCoord = vertTexCoord;',
-        '  gl_Position = mProj * mView * mModel * vec4(vertPosition, 1.0);',
-        '}'
-    ].join('\n');
-
-var fragmentShaderText =
-    [
-        '#version 300 es',
-        'precision mediump float;',
-        'in vec2 fragTexCoord;',
-        'uniform sampler2D sampler;',
-        'out vec4 color;',
-        '',
-        'void main()',
-        '{',
-        '  color = texture(sampler, fragTexCoord);',
-        '}'
-    ].join('\n');
-
-
 export class Renderer {
     constructor() {
         this.gl; //WebGl context
         this.canvas;
 
         this.loaded = false;
-        this.objectsLoaded = 0;
+        this.numModelsLoaded = 0;
+        this.numShadersLoaded = 0;
 
         this.shaders = new Array();
         this.models = new Array();
 
         //Camera
         this.camera = new Camera([2, 2, -8], [0, 0, 0], [0, 1, 0], false, 45, 0.1, 1000.0);
-        //Update
+
+        //Callbacks
         this.boundTick = this.Tick.bind(this);
+        this.shaderLoadedCallback = this.UpdateLoadedShadersCount.bind(this);
+        this.loadedCallback = this.UpdateLoadedModelsCount.bind(this);
 
         //Customize
         this.backgroundColor = [156 / 255, 189 / 255, 1.0, 1.0];
@@ -90,34 +58,42 @@ export class Renderer {
         this.gl.frontFace(this.gl.CCW);
         this.gl.cullFace(this.gl.BACK);
     }
-    SetupScene() {
-        var loadedCallback = this.UpdateLoadedObjectsCount.bind(this);
-        //Implement here scene loadout...
+    LoadResources() {
+        this.LoadShaders();
+    }
 
-        var diffuseShader = new Shader(this.gl, vertexShaderText, fragmentShaderText);
-        this.shaders.push(diffuseShader);
-        var diffuseMat = new BasicMaterial(0, diffuseShader, 'crate', null, null);
-        //var diffuseShader = new Shader(gl,"../Resources/Shaders/DiffuseShader.vs.glsl","../Resources/Shaders/DiffuseShader.fs.glsl");
+    LoadShaders() {
 
-        var box = new Model(this);
-        var box2 = new Model(this);
+        new Shader(this, "../Resources/Shaders/DiffuseShader.glsl");
 
-        box.Load(this.gl, "../Resources/Models/warrior-test.json", [diffuseMat], loadedCallback);
-        box2.Load(this.gl, "../Resources/Models/test-box.json", [diffuseMat], loadedCallback);
-        // var warrior = new Model();
-        // warrior.Load(this.gl, "../Resources/Models/sphere.json", [diffuseMat], loadedCallback);
-        box.Scale([0.02, 0.02, 0.02]);
-        box2.Translate([2,0,0]);
-        // warrior.Translate([2,2,0]);
-        // this.models.push(box);
-        // this.models.push(box2);
-        // this.models.push(warrior);
 
 
     }
-    UpdateLoadedObjectsCount() {
-        this.objectsLoaded++;
-        if (this.objectsLoaded == this.models.length) {
+    LoadModels() {
+        //Implement here scene loadout...
+
+        var diffuseMat = new BasicMaterial(0, this.shaders[0], 'crate', null, null);
+
+        var box = new Model(this, "../Resources/Models/warrior-test.json", [diffuseMat]);
+        var box2 = new Model(this, "../Resources/Models/test-box.json", [diffuseMat]);
+
+       
+        box.Scale([0.02, 0.02, 0.02]);
+        box2.Translate([2, 0, 0]);
+       
+
+
+    }
+    UpdateLoadedShadersCount() {
+        this.numShadersLoaded++;
+        if (this.numShadersLoaded == this.shaders.length) {
+            this.LoadModels();
+        }
+    }
+
+    UpdateLoadedModelsCount() {
+        this.numModelsLoaded++;
+        if (this.numModelsLoaded == this.models.length) {
             this.loaded = true; // allow rendering
         }
     }
@@ -180,7 +156,8 @@ export class Renderer {
 
     Run() {
         this.InitContext();
-        this.SetupScene();
+
+        this.LoadResources()
 
         this.Tick();
     }
