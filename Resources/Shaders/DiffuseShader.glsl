@@ -19,9 +19,11 @@ void main() {
  
 precision mediump float;
  in vec2 fragTexCoord;
- uniform sampler2D sampler;
- out vec4 color;
+ uniform sampler2D albedoText;
+ uniform sampler2D normalText;
+ uniform sampler2D specularText;
+ out vec4 fragColor;
 
  void main() {
- color = texture(sampler, fragTexCoord);
+ fragColor = texture(albedoText, fragTexCoord);
  }

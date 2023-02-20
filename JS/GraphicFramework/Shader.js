@@ -7,17 +7,21 @@ import { Utils } from "./Utils/Utils.js";
  * @param {string} fragSourceRoute Frag file route
  */
 export class Shader {
-    constructor(renderer, shaderSourceRoute) {
+    constructor(renderer,id,shaderSourceRoute) {
         
         this.gl = renderer.gl;
-        renderer.shaders.push(this);
+        this.id = id;
+        renderer.shaders.set(id,this);
+        // renderer.shaders.push(this);
         this.vertexShader = null;
         this.fragmentShader = null;
         
-        this.LoadShader(shaderSourceRoute,renderer.shaderLoadedCallback);
-
         this.attributesLocationCache = new Map();
         this.uniformLocationCache = new Map();
+        
+        this.LoadShader(shaderSourceRoute,renderer.shaderLoadedCallback);
+        
+
 
     }
   
@@ -101,6 +105,19 @@ export class Shader {
     SetMat4(name, value) {
         this.gl.uniformMatrix4fv(this.GetUniform(name), this.gl.FALSE, value);
     }
+    SetInt(name,value){
+        this.gl.uniform1i(this.GetUniform(name), value);
+    }
+    SetVec2(name,value){
+        this.gl.uniform2f(this.GetUniform(name), value);
+    }
+    SetVec3(name,value){
+        this.gl.uniform3f(this.GetUniform(name), value);
+    }
+    SetVec4(name,value){
+        this.gl.uniform4f(this.GetUniform(name), value);
+    }
+
 
     /**
         * Get shader unform location if exists and if not, create it and store it

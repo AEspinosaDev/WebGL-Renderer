@@ -4,6 +4,7 @@ import { Shader } from "./Shader.js";
 import { Camera } from "./Camera.js";
 import { mat4 } from "./Utils/gl-matrix/index.js";
 import { Model } from "./Model.js";
+import { Texture } from "./Texture.js";
 
 var identityMatrix = new Float32Array(16);
 mat4.identity(identityMatrix);
@@ -16,10 +17,13 @@ export class Renderer {
 
         this.loaded = false;
         this.numModelsLoaded = 0;
+        this.numTexturesLoaded = 0;
         this.numShadersLoaded = 0;
 
-        this.shaders = new Array();
+        this.shaders = new Map();
+        this.textures = new Map();
         this.models = new Array();
+
 
         //Camera
         this.camera = new Camera([2, 2, -8], [0, 0, 0], [0, 1, 0], false, 45, 0.1, 1000.0);
@@ -28,6 +32,7 @@ export class Renderer {
         this.boundTick = this.Tick.bind(this);
         this.shaderLoadedCallback = this.UpdateLoadedShadersCount.bind(this);
         this.loadedCallback = this.UpdateLoadedModelsCount.bind(this);
+        this.textureLoadedCallback = this.UpdateLoadedTexturesCount.bind(this);
 
         //Customize
         this.backgroundColor = [156 / 255, 189 / 255, 1.0, 1.0];
@@ -64,29 +69,40 @@ export class Renderer {
 
     LoadShaders() {
 
-        new Shader(this, "../Resources/Shaders/DiffuseShader.glsl");
+        new Shader(this, "diffuseShader", "../Resources/Shaders/DiffuseShader.glsl");
 
 
 
     }
+    LoadTextures() {
+        new Texture(this,"albedoCrate", "../Resources/Textures/crate.png");
+
+    }
+
     LoadModels() {
         //Implement here scene loadout...
 
-        var diffuseMat = new BasicMaterial(0, this.shaders[0], 'crate', null, null);
+        var diffuseMat = new BasicMaterial(this, 0, "diffuseShader", "albedoCrate", null, null);
 
         var box = new Model(this, "../Resources/Models/warrior-test.json", [diffuseMat]);
         var box2 = new Model(this, "../Resources/Models/test-box.json", [diffuseMat]);
 
-       
+
         box.Scale([0.02, 0.02, 0.02]);
         box2.Translate([2, 0, 0]);
-       
+
 
 
     }
     UpdateLoadedShadersCount() {
         this.numShadersLoaded++;
-        if (this.numShadersLoaded == this.shaders.length) {
+        if (this.numShadersLoaded == this.shaders.size) {
+            this.LoadTextures();
+        }
+    }
+    UpdateLoadedTexturesCount() {
+        this.numTexturesLoaded++;
+        if (this.numTexturesLoaded == this.textures.size) {
             this.LoadModels();
         }
     }

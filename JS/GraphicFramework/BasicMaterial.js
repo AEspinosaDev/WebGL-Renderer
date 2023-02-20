@@ -9,63 +9,48 @@ export class BasicMaterial {
     /**
      * 
      * @param {Shader} shader Shader used for the material
-     * @param {Texture} albedoText Color/albedo/diffuse texture URL (Nulleable)
-     * @param {Texture} normalTex Normal texture URL (Nulleable)
-     * @param {Texture} specularText Specular texture URLC (Nulleable)
+     * @param {String} albedoTextName Color/albedo/diffuse texture ID (Nulleable)
+     * @param {String} normalTexName Normal texture ID (Nulleable)
+     * @param {String} specularText Specular texture ID (Nulleable)
      */
-    constructor(id,shader, albedoText, normalTex, specularText) {
+    constructor(renderer, id, shader, albedoTextName, normalTexName, specularTextName) {
 
-        this.id = id;
-        this.shader = shader;
+        this.shader = renderer.shaders.get(shader);
 
         //Textures
-        this.albedoTexture = this.LoadTexture(albedoText);
-        this.normalTexture = this.LoadTexture(normalTex);
-        this.specularTexture = this.LoadTexture(specularText);
+        this.albedoTextureID = renderer.textures.get(albedoTextName);
+        this.normalTextureID = renderer.shaders.get(normalTexName);
+        this.specularTextureID = renderer.shaders.get(specularTextName);
+        // console.log(this.specularTextureID);
 
 
     }
 
-    LoadTexture(imageRoute) {
-        if(!imageRoute){
-            return;
-        }
 
-        var textureID = this.shader.gl.createTexture();
-        this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, textureID);
-        this.shader.gl.texParameteri(this.shader.gl.TEXTURE_2D, this.shader.gl.TEXTURE_WRAP_S, this.shader.gl.CLAMP_TO_EDGE);
-        this.shader.gl.texParameteri(this.shader.gl.TEXTURE_2D, this.shader.gl.TEXTURE_WRAP_T, this.shader.gl.CLAMP_TO_EDGE);
-        this.shader.gl.texParameteri(this.shader.gl.TEXTURE_2D, this.shader.gl.TEXTURE_MIN_FILTER, this.shader.gl.LINEAR);
-        this.shader.gl.texParameteri(this.shader.gl.TEXTURE_2D, this.shader.gl.TEXTURE_MAG_FILTER, this.shader.gl.LINEAR);
-        this.shader.gl.texImage2D(
-            this.shader.gl.TEXTURE_2D, 0, this.shader.gl.RGBA, this.shader.gl.RGBA,
-            this.shader.gl.UNSIGNED_BYTE,
-            document.getElementById(imageRoute)
-        );
-        this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, null);
-
-        return textureID;
-
-    }
-    BindTextures(){
+    BindTextures() {
 
         this.shader.Use();
 
-        if (this.albedoTexture != null) {
-            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.albedoTexture);
+
+        if (this.albedoTextureID != null) {
             this.shader.gl.activeTexture(this.shader.gl.TEXTURE0);
+            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.albedoTextureID);
+            this.shader.SetInt("albedoText", this.shader.gl.TEXTURE0);
         }
 
-        if (this.normalTexture != null) {
-            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.normalTexture);
+        if (this.normalTextureID != null) {
             this.shader.gl.activeTexture(this.shader.gl.TEXTURE1);
+            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.normalTextureID);
+            this.shader.SetInt("normalText", this.shader.gl.TEXTURE1);
         }
 
-        if (this.specularTexture != null) {
-            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.specularTexture);
+        if (this.specularTextureID != null) {
             this.shader.gl.activeTexture(this.shader.gl.TEXTURE2);
+            this.shader.gl.bindTexture(this.shader.gl.TEXTURE_2D, this.specularTextureID);
+            this.shader.SetInt("specularText", this.shader.gl.TEXTURE2);
         }
 
     }
+   
 
 }
