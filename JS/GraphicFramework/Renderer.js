@@ -1,14 +1,15 @@
-import { Mesh } from "./Mesh.js";
-import { BasicMaterial } from "./BasicMaterial.js";
-import { Shader } from "./Shader.js";
 import { Camera } from "./Camera.js";
+import { Light } from "./Light.js";
+import { Shader } from "./Shader.js";
 import { mat4 } from "./Utils/gl-matrix/index.js";
-import { Model } from "./Model.js";
-import { Texture } from "./Texture.js";
 
 var identityMatrix = new Float32Array(16);
 mat4.identity(identityMatrix);
 
+export const SHADER_TYPE = {
+    Lit: 0,
+    Unlit: 1,
+}
 
 export class Renderer {
     constructor() {
@@ -21,8 +22,13 @@ export class Renderer {
         this.numShadersLoaded = 0;
 
         this.shaders = new Map();
+
+
         this.textures = new Map();
         this.models = new Array();
+
+        this.lights = new Array();
+        this.lights.push(new Light([0,4,0],[1,1,1],1));
 
 
         //Camera
@@ -63,37 +69,35 @@ export class Renderer {
         this.gl.frontFace(this.gl.CCW);
         this.gl.cullFace(this.gl.BACK);
     }
+    /**
+     * Load all resources needed for rendering (shaders,textures, geometry)
+     */
     LoadResources() {
         this.LoadShaders();
     }
-
+    /**
+     * To implement by the user. Load shaders here.
+     */
     LoadShaders() {
-
-        new Shader(this, "diffuseShader", "../Resources/Shaders/DiffuseShader.glsl");
-
-
+        new Shader(this, "lightGizmoShader", "../Resources/Shaders/LightGizmoShader.glsl",SHADER_TYPE.Unlit);
+        //Load desired shaders...
 
     }
+    /**
+     * To implement by the user. Load textures here.
+     */
     LoadTextures() {
-        new Texture(this,"albedoCrate", "../Resources/Textures/crate.png");
+        //Load desired textures...
+
+    }
+    /**
+     * To implement by the user. Load models here. Models can be also be transformed here. Models need materials to be rendered. Materials can be instanced here. Lights here.
+     */
+    SetupScene() {
+        //Load desired models and materials...
 
     }
 
-    LoadModels() {
-        //Implement here scene loadout...
-
-        var diffuseMat = new BasicMaterial(this, 0, "diffuseShader", "albedoCrate", null, null);
-
-        var box = new Model(this, "../Resources/Models/warrior-test.json", [diffuseMat]);
-        var box2 = new Model(this, "../Resources/Models/test-box.json", [diffuseMat]);
-
-
-        box.Scale([0.02, 0.02, 0.02]);
-        box2.Translate([2, 0, 0]);
-
-
-
-    }
     UpdateLoadedShadersCount() {
         this.numShadersLoaded++;
         if (this.numShadersLoaded == this.shaders.size) {
@@ -103,7 +107,7 @@ export class Renderer {
     UpdateLoadedTexturesCount() {
         this.numTexturesLoaded++;
         if (this.numTexturesLoaded == this.textures.size) {
-            this.LoadModels();
+            this.SetupScene();
         }
     }
 
@@ -114,16 +118,7 @@ export class Renderer {
         }
     }
 
-    InitCam() {
-        this.camera.Refresh(this.canvas);
-        // for all shaders in scene
-        this.shaders.forEach(s => {
-            s.Use();
-            s.SetMat4('mView', this.camera.viewMatrix);
-            s.SetMat4('mProj', this.camera.projMatrix);
-        });
-
-    }
+   
 
     Update() {
         this.models.forEach(m => {
@@ -134,6 +129,21 @@ export class Renderer {
         this.gl.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], this.backgroundColor[3]);
         this.gl.clear(this.gl.DEPTH_BUFFER_BIT | this.gl.COLOR_BUFFER_BIT);
 
+        //Lights
+        this.shaders.forEach(s => {
+            if(s.type == SHADER_TYPE.Lit){
+            s.Use();
+            s.SetVec3("lightPos",this.lights[0].pos[0],this.lights[0].pos[1],this.lights[0].pos[2]);
+            s.SetVec3("lightColor",this.lights[0].color[0],this.lights[0].color[1],this.lights[0].color[2]);
+            s.SetFloat("lightIntensity",this.lights[0].intensity);
+
+            }
+            //Albedo intensity
+
+            
+        });
+
+        //Geometry
         this.models.forEach(m => {
             m.Render();
         });

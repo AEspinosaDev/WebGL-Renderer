@@ -7,29 +7,31 @@ import { Utils } from "./Utils/Utils.js";
  * @param {string} fragSourceRoute Frag file route
  */
 export class Shader {
-    constructor(renderer,id,shaderSourceRoute) {
-        
+    constructor(renderer, id, shaderSourceRoute, type) {
+
         this.gl = renderer.gl;
         this.id = id;
-        renderer.shaders.set(id,this);
+        this.type = type;
+
+        renderer.shaders.set(id, this);
         // renderer.shaders.push(this);
         this.vertexShader = null;
         this.fragmentShader = null;
-        
+
         this.attributesLocationCache = new Map();
         this.uniformLocationCache = new Map();
-        
-        this.LoadShader(shaderSourceRoute,renderer.shaderLoadedCallback);
-        
+
+        this.LoadShader(shaderSourceRoute, renderer.shaderLoadedCallback);
+
 
 
     }
-  
+
     //ASYNC
-    LoadShader(shaderSourceRoute,callback) {
+    LoadShader(shaderSourceRoute, callback) {
         var root = this;
 
-        Utils.LoadTextResource(shaderSourceRoute, function(data){
+        Utils.LoadTextResource(shaderSourceRoute, function (data) {
 
             var splittedShaderSource = data.split("--SPLIT--");
             var vertShaderSource = splittedShaderSource[0];
@@ -38,7 +40,7 @@ export class Shader {
             root.vertexShader = root.gl.createShader(root.gl.VERTEX_SHADER);
             root.fragmentShader = root.gl.createShader(root.gl.FRAGMENT_SHADER);
 
-            root.CompileShaders(vertShaderSource,fragShaderSource); //Shader text source
+            root.CompileShaders(vertShaderSource, fragShaderSource); //Shader text source
 
             root.program = root.InitShader();
 
@@ -105,17 +107,20 @@ export class Shader {
     SetMat4(name, value) {
         this.gl.uniformMatrix4fv(this.GetUniform(name), this.gl.FALSE, value);
     }
-    SetInt(name,value){
+    SetInt(name, value) {
         this.gl.uniform1i(this.GetUniform(name), value);
     }
-    SetVec2(name,value){
-        this.gl.uniform2f(this.GetUniform(name), value);
+    SetFloat(name, value) {
+        this.gl.uniform1f(this.GetUniform(name), value);
     }
-    SetVec3(name,value){
-        this.gl.uniform3f(this.GetUniform(name), value);
+    SetVec2(name, x, y) {
+        this.gl.uniform2f(this.GetUniform(name), x, y);
     }
-    SetVec4(name,value){
-        this.gl.uniform4f(this.GetUniform(name), value);
+    SetVec3(name, x, y, z) {
+        this.gl.uniform3f(this.GetUniform(name), x, y, z);
+    }
+    SetVec4(name, x, y, z, k) {
+        this.gl.uniform4f(this.GetUniform(name), x, y, z, k);
     }
 
 
@@ -134,8 +139,8 @@ export class Shader {
 
     SetAttrib(name) {
         if (!this.attributesLocationCache.has(name)) {
-            var attrib_id =this.gl.getAttribLocation(this.program, name);
-            this.attributesLocationCache.set(name,attrib_id);
+            var attrib_id = this.gl.getAttribLocation(this.program, name);
+            this.attributesLocationCache.set(name, attrib_id);
             return attrib_id;
         }
     }
