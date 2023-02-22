@@ -8,6 +8,8 @@ export const Texture = {
 export class BasicMaterial {
     /**
      * 
+     * @param {renderer} renderer reference to renderer
+     * @param {String} id identification
      * @param {Shader} shader Shader used for the material
      * @param {String} albedoTextName Color/albedo/diffuse texture ID (Nulleable)
      * @param {String} normalTexName Normal texture ID (Nulleable)
@@ -16,6 +18,8 @@ export class BasicMaterial {
     constructor(renderer, id, shader, albedoTextName, normalTexName, specularTextName) {
 
         this.shader = renderer.shaders.get(shader);
+        renderer.materials.set(id,this);
+        this.id = id;
 
         //Textures
         this.albedoTextureID = renderer.textures.get(albedoTextName);

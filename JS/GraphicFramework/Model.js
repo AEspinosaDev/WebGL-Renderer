@@ -2,7 +2,7 @@ import { Mesh } from "./Mesh.js";
 import { Utils } from "./Utils/Utils.js";
 
 export class Model {
-    constructor(renderer,route, matsList) {
+    constructor(renderer,route, materialID) {
 
         this.meshes = new Map();
         this.numOfMeshes = 0;
@@ -16,12 +16,12 @@ export class Model {
 
         renderer.models.push(this);
 
-        this.Load(renderer.gl,route,matsList,renderer.loadedCallback)
+        this.Load(renderer.gl,route,renderer.materials.get(materialID),renderer.loadedCallback)
 
     }
    
     //Async
-    Load(gl, route, matsList, callback){
+    Load(gl, route, mat, callback){
         var root = this;
 
         Utils.loadJson(route, function(data){
@@ -30,7 +30,7 @@ export class Model {
             var mesh;
     
             for (let i = 0; i < root.numOfMeshes; i++) {
-                mesh = new Mesh(gl, i, data.meshes[i], matsList[0]);
+                mesh = new Mesh(gl, i, data.meshes[i], mat);
                 mesh.Transform(root.position, root.scaleFactor);
                 root.meshes.set(mesh.id, mesh);
             }

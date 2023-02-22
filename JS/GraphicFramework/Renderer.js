@@ -1,5 +1,7 @@
+import { BasicMaterial } from "./BasicMaterial.js";
 import { Camera } from "./Camera.js";
 import { Light } from "./Light.js";
+import { Model } from "./Model.js";
 import { Shader } from "./Shader.js";
 import { mat4 } from "./Utils/gl-matrix/index.js";
 
@@ -10,6 +12,9 @@ export const SHADER_TYPE = {
     Lit: 0,
     Unlit: 1,
 }
+
+var keys = {};
+let then = 0;
 
 export class Renderer {
     constructor() {
@@ -22,13 +27,13 @@ export class Renderer {
         this.numShadersLoaded = 0;
 
         this.shaders = new Map();
-
+        this.materials = new Map();
 
         this.textures = new Map();
         this.models = new Array();
 
         this.lights = new Array();
-        this.lights.push(new Light([0,4,0],[1,1,1],1));
+
 
 
         //Camera
@@ -79,7 +84,7 @@ export class Renderer {
      * To implement by the user. Load shaders here.
      */
     LoadShaders() {
-        new Shader(this, "lightGizmoShader", "../Resources/Shaders/LightGizmoShader.glsl",SHADER_TYPE.Unlit);
+        new Shader(this, "gizmoShader", "../Resources/Shaders/gizmoShader.glsl", SHADER_TYPE.Unlit);
         //Load desired shaders...
 
     }
@@ -95,6 +100,13 @@ export class Renderer {
      */
     SetupScene() {
         //Load desired models and materials...
+        new BasicMaterial(this, "gizmoMat", "gizmoShader", null, null, null);
+        new Light(this, [0, 3, 0], [1, 1, 1], 1);
+
+        var light = new Model(this, "../Resources/Models/sphere.json", "gizmoMat");
+        light.Translate([0, 3, 0]);
+        light.Scale([0.02, 0.02, 0.02]);
+
 
     }
 
@@ -118,12 +130,11 @@ export class Renderer {
         }
     }
 
-   
 
-    Update() {
-        this.models.forEach(m => {
-            m.Update();
-        });
+
+    Update(deltaTime) {
+
+        this.camera.Update(keys,deltaTime);
     }
     Render() {
         this.gl.clearColor(this.backgroundColor[0], this.backgroundColor[1], this.backgroundColor[2], this.backgroundColor[3]);
@@ -131,16 +142,22 @@ export class Renderer {
 
         //Lights
         this.shaders.forEach(s => {
-            if(s.type == SHADER_TYPE.Lit){
-            s.Use();
-            s.SetVec3("lightPos",this.lights[0].pos[0],this.lights[0].pos[1],this.lights[0].pos[2]);
-            s.SetVec3("lightColor",this.lights[0].color[0],this.lights[0].color[1],this.lights[0].color[2]);
-            s.SetFloat("lightIntensity",this.lights[0].intensity);
+            if (s.type == SHADER_TYPE.Lit) {
+                s.Use();
+                s.SetVec3("lightPos", this.lights[0].pos[0], this.lights[0].pos[1], this.lights[0].pos[2]);
+                s.SetVec3("lightColor", this.lights[0].color[0], this.lights[0].color[1], this.lights[0].color[2]);
+                s.SetFloat("lightIntensity", this.lights[0].intensity);
+
+            }
+            if (s.type == SHADER_TYPE.Unlit) {
+                //Render light gizmos
+
+
 
             }
             //Albedo intensity
 
-            
+
         });
 
         //Geometry
@@ -165,13 +182,15 @@ export class Renderer {
             s.SetMat4('mProj', this.camera.projMatrix);
         });
     }
-    Tick() {
+    Tick(now) {
+        now *= 0.001;  // seconds;
+        const deltaTime = now - then;
+        then = now;
 
         if (this.loaded) {
-
             this.ResizeCanvas();
             // mat4.rotate(this.models[0].model, this.models[0].model, 0.015, [0, 1, 0]);
-            this.Update();
+            this.Update(deltaTime);
             this.Render();
 
         }
@@ -187,7 +206,18 @@ export class Renderer {
 
         this.Tick();
     }
+
 }
+window.addEventListener('keydown', (e) => {
+    keys[e.keyCode] = true;
+    e.preventDefault();
+});
+window.addEventListener('keyup', (e) => {
+    keys[e.keyCode] = false;
+    e.preventDefault();
+});
+
+
 
 
 

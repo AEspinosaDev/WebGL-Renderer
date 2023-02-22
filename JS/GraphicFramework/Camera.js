@@ -15,7 +15,13 @@ export class Camera {
 
         this.viewMatrix = new Float32Array(16);
         this.projMatrix = new Float32Array(16);
-        
+
+        this.turnSpeed = 90;
+        this.speed = 1;
+        this.ang = 0;
+        this.roll = 0;
+        this.elev = 0;
+
         mat4.lookAt(this.viewMatrix, this.position, this.forward, this.up);
 
     }
@@ -27,7 +33,46 @@ export class Camera {
         }
     }
 
-    Move() {
-        //..
+
+    Update(keys, deltaTime) {
+        
+        
+        // mat4.invert(this.viewMatrix,  camera);
+        var modView = new Float32Array(16);
+        mat4.identity(modView);
+        mat4.translate(modView, modView,[ this.position[0],  this.position[1],  this.position[2]]);
+        mat4.rotateX(modView, modView, this.#DegToRad(this.elev));
+        mat4.rotateY(modView, modView, this.#DegToRad(-this.ang));
+        mat4.rotateZ(modView, modView, this.#DegToRad(this.roll));
+        this.viewMatrix = modView;
+
+
+        if (keys['87'] || keys['83']) {
+            const direction = keys['87'] ? -1 : 1;
+            this.position[0] -= modView[8] * deltaTime * this.speed * direction;
+            this.position[1] -= modView[9] * deltaTime * this.speed * direction;
+            this.position[2] -= modView[10] * deltaTime * this.speed * direction;
+        }
+
+        if (keys['65'] || keys['68']) {
+            const direction = keys['65'] ? 1 : -1;
+            this.ang += deltaTime * this.turnSpeed * direction;
+        }
+
+        if (keys['81'] || keys['69']) {
+            const direction = keys['81'] ? 1 : -1;
+            this.roll += deltaTime * this.turnSpeed * direction;
+        }
+
+        if (keys['38'] || keys['40']) {
+            const direction = keys['38'] ? 1 : -1;
+            this.elev += deltaTime * this.turnSpeed * direction;
+        }
+
+
+
     }
+    #DegToRad(d) {
+        return d * Math.PI / 180;
+      }
 }
