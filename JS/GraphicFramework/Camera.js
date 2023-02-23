@@ -1,9 +1,10 @@
-import { glMatrix, mat4 } from "./Utils/gl-matrix/index.js";
+import { glMatrix, mat4, vec3 } from "./Utils/gl-matrix/index.js";
 
 export class Camera {
     constructor(pos, fwd, up, isOrtho, fov, far, near) {
 
         this.position = pos;
+        this.initialPosition = pos;
         this.forward = fwd;
         this.up = up;
 
@@ -17,7 +18,7 @@ export class Camera {
         this.projMatrix = new Float32Array(16);
 
         this.turnSpeed = 90;
-        this.speed = 1;
+        this.speed = 3;
         this.ang = 0;
         this.roll = 0;
         this.elev = 0;
@@ -27,7 +28,7 @@ export class Camera {
     }
     Refresh(canvas) {
         if (!this.isOrtho) {
-            mat4.perspective(this.projMatrix, glMatrix.toRadian(this.fov), canvas.clientWidth / canvas.clientHeight, this.near, this.far);
+            mat4.perspective(this.projMatrix,  glMatrix.toRadian(this.fov), canvas.clientWidth / canvas.clientHeight, this.near, this.far);
         } else {
             mat4.ortho(this.projMatrix, 0, canvas.clientWidth, 0, canvas.clientHeight, this.near, this.far);
         }
@@ -35,44 +36,53 @@ export class Camera {
 
 
     Update(keys, deltaTime) {
-        
-        
-        // mat4.invert(this.viewMatrix,  camera);
-        var modView = new Float32Array(16);
-        mat4.identity(modView);
-        mat4.translate(modView, modView,[ this.position[0],  this.position[1],  this.position[2]]);
-        mat4.rotateX(modView, modView, this.#DegToRad(this.elev));
-        mat4.rotateY(modView, modView, this.#DegToRad(-this.ang));
-        mat4.rotateZ(modView, modView, this.#DegToRad(this.roll));
-        this.viewMatrix = modView;
 
+        if (keys['W'] || keys['S']  || keys['w']  || keys['s'] ) {
 
-        if (keys['87'] || keys['83']) {
-            const direction = keys['87'] ? -1 : 1;
-            this.position[0] -= modView[8] * deltaTime * this.speed * direction;
-            this.position[1] -= modView[9] * deltaTime * this.speed * direction;
-            this.position[2] -= modView[10] * deltaTime * this.speed * direction;
+            const direction = keys['W'] || keys['w'] ? 1 : -1;
+
+            this.position[0] +=  this.forward[0]*deltaTime * this.speed * direction;
+            this.position[1] +=  this.forward[1]*deltaTime * this.speed * direction;
+            this.position[2] +=  this.forward[2]*deltaTime * this.speed * direction;
         }
 
-        if (keys['65'] || keys['68']) {
-            const direction = keys['65'] ? 1 : -1;
-            this.ang += deltaTime * this.turnSpeed * direction;
+        if (keys['A'] || keys['D'] ||  keys['a']||  keys['d']) {
+
+            const direction = keys['A']|| keys['a'] ? 1 : -1;
+
+            var forward = vec3.fromValues( this.forward[0], this.forward[1], this.forward[2]);
+            var up = vec3.fromValues( this.up[0], this.up[1], this.up[2]);
+            var side = vec3.create();
+            vec3.cross(side,up,forward);
+
+            this.position[0] += side[0]*deltaTime * this.speed * direction;
+            this.position[1] += side[1]*deltaTime * this.speed * direction;
+            this.position[2] += side[2]*deltaTime * this.speed * direction;
         }
 
-        if (keys['81'] || keys['69']) {
-            const direction = keys['81'] ? 1 : -1;
-            this.roll += deltaTime * this.turnSpeed * direction;
+        if (keys['Q'] || keys['E'] || keys['q'] || keys['e']) {
+            const direction = keys['Q'] || keys['q'] ? 1 : -1;
+
+            this.position[0] += this.up[0]*deltaTime * this.speed * direction;
+            this.position[1] += this.up[1]*deltaTime * this.speed * direction;
+            this.position[2] += this.up[2]*deltaTime * this.speed * direction;
         }
 
-        if (keys['38'] || keys['40']) {
-            const direction = keys['38'] ? 1 : -1;
-            this.elev += deltaTime * this.turnSpeed * direction;
+        if (keys['R'] || keys['r']){
+
+            this.position[0] = this.initialPosition[0];
+            this.position[1] = this.initialPosition[1];
+            this.position[2] = this.initialPosition[2];
+
+            this.forward[0] = 0;
+            this.forward[1] = 0;
+            this.forward[2] = 1;
+
+
         }
 
-
+        mat4.lookAt(this.viewMatrix, this.position, [this.position[0]+this.forward[0],this.position[1]+this.forward[1],this.position[2]+this.forward[2]], this.up);
 
     }
-    #DegToRad(d) {
-        return d * Math.PI / 180;
-      }
+   
 }

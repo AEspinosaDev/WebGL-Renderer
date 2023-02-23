@@ -37,7 +37,7 @@ export class Renderer {
 
 
         //Camera
-        this.camera = new Camera([2, 2, -8], [0, 0, 0], [0, 1, 0], false, 45, 0.1, 1000.0);
+        this.camera = new Camera([0, 2, -8], [0, 0,1], [0, 1, 0], false, 45, 0.1, 1000.0);
 
         //Callbacks
         this.boundTick = this.Tick.bind(this);
@@ -208,13 +208,12 @@ export class Renderer {
     }
 
 }
+
 window.addEventListener('keydown', (e) => {
-    keys[e.keyCode] = true;
-    e.preventDefault();
+    keys[e.key] = true;
 });
 window.addEventListener('keyup', (e) => {
-    keys[e.keyCode] = false;
-    e.preventDefault();
+    keys[e.key] = false;
 });
 
 
